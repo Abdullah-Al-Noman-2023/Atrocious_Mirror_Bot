@@ -1,7 +1,7 @@
 from os import path as ospath, makedirs
 from psycopg2 import connect, DatabaseError
 
-from bot import DB_URI, AUTHORIZED_CHATS, SUDO_USERS, AS_DOC_USERS, AS_MEDIA_USERS, rss_dict, LOGGER, botname, LEECH_LOG
+from bot import DATABASE_URL, AUTHORIZED_CHATS, SUDO_USERS, AS_DOC_USERS, AS_MEDIA_USERS, rss_dict, LOGGER, botname, LEECH_LOG
 
 class DbManger:
     def __init__(self):
@@ -10,7 +10,7 @@ class DbManger:
 
     def connect(self):
         try:
-            self.conn = connect(DB_URI)
+            self.conn = connect(DATABASE_URL)
             self.cur = self.conn.cursor()
         except DatabaseError as error:
             LOGGER.error(f"Error in DB connection: {error}")
@@ -268,6 +268,6 @@ class DbManger:
         self.conn.commit()
         self.disconnect()
 
-if DB_URI is not None:
+if DATABASE_URL is not None:
     DbManger().db_init()
 
