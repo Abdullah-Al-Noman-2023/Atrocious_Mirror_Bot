@@ -519,11 +519,11 @@ except KeyError:
     APPDRIVE_EMAIL = None
     APPDRIVE_PASS = None
 try:
-    CRYPT = environ.get('CRYPT')
-    if len(CRYPT) == 0:
+    GDTOT_CRYPT = environ.get('GDTOT_CRYPT')
+    if len(GDTOT_CRYPT) == 0:
         raise KeyError
 except:
-    CRYPT = None
+    GDTOT_CRYPT = None
 try:
     BOT_PM = environ.get('BOT_PM')
     BOT_PM = BOT_PM.lower() == 'true'
