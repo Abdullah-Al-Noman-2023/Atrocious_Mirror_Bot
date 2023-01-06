@@ -4,7 +4,7 @@ from time import sleep
 from threading import Thread
 from telegram.ext import CommandHandler
 
-from bot import dispatcher, DOWNLOAD_DIR, LOGGER, MEGA_KEY, BOT_PM, LEECH_LOG, MAX_SPLIT_SIZE
+from bot import dispatcher, DOWNLOAD_DIR, LOGGER, MEGA_API_KEY, BOT_PM, LEECH_LOG, MAX_SPLIT_SIZE
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.mirror_utils.download_utils.aria2_download import add_aria2c_download
@@ -188,7 +188,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         else:
             Thread(target=add_gd_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, name)).start()
     elif is_mega_link(link):
-        if MEGA_KEY is not None:
+        if MEGA_API_KEY is not None:
             Thread(target=MegaDownloader(listener).add_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}/')).start()
         else:
             sendMessage('MEGA_API_KEY not Provided!', bot, message)

@@ -6,7 +6,7 @@ from os import path as ospath, remove as osremove, listdir, walk
 from subprocess import Popen
 from html import escape
 from bot import bot, Interval, INDEX_URL, VIEW_LINK, aria2, DOWNLOAD_DIR, download_dict, download_dict_lock, \
-                LEECH_SPLIT_SIZE, LOGGER, DB_URI, INCOMPLETE_TASK_NOTIFIER, MAX_SPLIT_SIZE, MIRROR_LOGS, BOT_PM, SOURCE_LINK, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, FORCE_BOT_PM, LEECH_LOG
+                LEECH_SPLIT_SIZE, LOGGER, DATABASE_URL, INCOMPLETE_TASK_NOTIFIER, MAX_SPLIT_SIZE, MIRROR_LOGS, BOT_PM, SOURCE_LINK, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, FORCE_BOT_PM, LEECH_LOG
 from bot.helper.ext_utils.fs_utils import get_base_name, get_path_size, split_file, clean_download, clean_target
 from bot.helper.ext_utils.exceptions import NotSupportedExtractionArchive
 from bot.helper.mirror_utils.status_utils.extract_status import ExtractStatus
@@ -50,7 +50,7 @@ class MirrorLeechListener:
             pass
 
     def onDownloadStart(self):
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
+        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DATABASE_URL is not None:
             DbManger().add_incomplete_task(self.message.chat.id, self.message.link, self.tag)
 
     def onDownloadComplete(self):
@@ -214,7 +214,7 @@ class MirrorLeechListener:
             drive.upload(up_name)
 
     def onUploadComplete(self, link: str, size, files, folders, typ, name):
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
+        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DATABASE_URL is not None:
             DbManger().rm_complete_task(self.message.link)
         mesg = self.message.text.split('\n')
         message_args = mesg[0].split(' ', maxsplit=1)
@@ -429,7 +429,7 @@ class MirrorLeechListener:
         else:
             update_all_messages()
 
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
+        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DATABASE_URL is not None:
             DbManger().rm_complete_task(self.message.link)
 
     def onUploadError(self, error):
@@ -450,5 +450,5 @@ class MirrorLeechListener:
         else:
             update_all_messages()
 
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
+        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DATABASE_URL is not None:
             DbManger().rm_complete_task(self.message.link)

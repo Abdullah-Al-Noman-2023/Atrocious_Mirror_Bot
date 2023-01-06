@@ -1,4 +1,4 @@
-from bot import AUTHORIZED_CHATS, SUDO_USERS, dispatcher, DB_URI, LEECH_LOG, MIRROR_LOGS
+from bot import AUTHORIZED_CHATS, SUDO_USERS, dispatcher, DATABASE_URL, LEECH_LOG, MIRROR_LOGS
 from bot.helper.telegram_helper.message_utils import sendMessage
 from telegram.ext import CommandHandler
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -16,7 +16,7 @@ def authorize(update, context):
     if user_id:
         if user_id in AUTHORIZED_CHATS:
             msg = 'User Already Authorized!'
-        elif DB_URI is not None:
+        elif DATABASE_URL is not None:
             msg = DbManger().user_auth(user_id)
             AUTHORIZED_CHATS.add(user_id)
         else:
@@ -26,7 +26,7 @@ def authorize(update, context):
         chat_id = update.effective_chat.id
         if chat_id in AUTHORIZED_CHATS:
             msg = 'Chat Already Authorized!'
-        elif DB_URI is not None:
+        elif DATABASE_URL is not None:
             msg = DbManger().user_auth(chat_id)
             AUTHORIZED_CHATS.add(chat_id)
         else:
@@ -44,7 +44,7 @@ def addleechlog(update, context):
     if user_id:
         if user_id in LEECH_LOG:
             msg = 'Chat Already in Leech Logs'
-        elif DB_URI is not None:
+        elif DATABASE_URL is not None:
             msg = DbManger().addleech_log(user_id)
             LEECH_LOG.add(user_id)
         else:
@@ -54,7 +54,7 @@ def addleechlog(update, context):
         chat_id = update.effective_chat.id
         if chat_id in LEECH_LOG:
             msg = 'Chat Already in Leech Logs'
-        elif DB_URI is not None:
+        elif DATABASE_URL is not None:
             msg = DbManger().addleech_log(chat_id)
             LEECH_LOG.add(chat_id)
         else:
@@ -71,7 +71,7 @@ def rmleechlog(update, context):
         user_id = reply_message.from_user.id
     if user_id:
         if user_id in LEECH_LOG:
-            if DB_URI is not None:
+            if DATABASE_URL is not None:
                 msg = DbManger().rmleech_log(user_id)
             else:
                 msg = 'User removed from leech logs'
@@ -81,7 +81,7 @@ def rmleechlog(update, context):
     else:
         chat_id = update.effective_chat.id
         if chat_id in LEECH_LOG:
-            if DB_URI is not None:
+            if DATABASE_URL is not None:
                 msg = DbManger().rmleech_log(chat_id)
             else:
                 msg = 'Chat removed from leech logs!'
@@ -100,7 +100,7 @@ def unauthorize(update, context):
         user_id = reply_message.from_user.id
     if user_id:
         if user_id in AUTHORIZED_CHATS:
-            if DB_URI is not None:
+            if DATABASE_URL is not None:
                 msg = DbManger().user_unauth(user_id)
             else:
                 msg = 'User Unauthorized'
@@ -110,7 +110,7 @@ def unauthorize(update, context):
     else:
         chat_id = update.effective_chat.id
         if chat_id in AUTHORIZED_CHATS:
-            if DB_URI is not None:
+            if DATABASE_URL is not None:
                 msg = DbManger().user_unauth(chat_id)
             else:
                 msg = 'Chat Unauthorized'
@@ -129,7 +129,7 @@ def addSudo(update, context):
     if user_id:
         if user_id in SUDO_USERS:
             msg = 'Already Sudo!'
-        elif DB_URI is not None:
+        elif DATABASE_URL is not None:
             msg = DbManger().user_addsudo(user_id)
             SUDO_USERS.add(user_id)
         else:
@@ -147,7 +147,7 @@ def removeSudo(update, context):
     elif reply_message:
         user_id = reply_message.from_user.id
     if user_id and user_id in SUDO_USERS:
-        msg = DbManger().user_rmsudo(user_id) if DB_URI is not None else 'Demoted'
+        msg = DbManger().user_rmsudo(user_id) if DATABASE_URL is not None else 'Demoted'
         SUDO_USERS.remove(user_id)
     else:
         msg = "Give ID or Reply To message of whom you want to remove from Sudo"

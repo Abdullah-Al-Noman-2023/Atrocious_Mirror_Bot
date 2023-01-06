@@ -3,7 +3,7 @@ from time import sleep
 from telegram.ext import CommandHandler, CallbackQueryHandler
 from threading import Lock, Thread
 
-from bot import dispatcher, job_queue, rss_dict, LOGGER, DB_URI, RSS_DELAY, RSS_CHAT_ID, RSS_COMMAND, AUTO_DELETE_MESSAGE_DURATION
+from bot import dispatcher, job_queue, rss_dict, LOGGER, DATABASE_URL, RSS_DELAY, RSS_CHAT_ID, RSS_COMMAND, AUTO_DELETE_MESSAGE_DURATION
 from bot.helper.telegram_helper.message_utils import sendMessage, editMessage, sendMarkup, auto_delete_message, sendRss
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -236,7 +236,7 @@ def rss_monitor(context):
             LOGGER.error(f"{e} Feed Name: {name} - Feed Link: {data[0]}")
             continue
 
-if DB_URI is not None and RSS_CHAT_ID is not None:
+if DATABASE_URL is not None and RSS_CHAT_ID is not None:
     rss_list_handler = CommandHandler(BotCommands.RssListCommand, rss_list, filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
     rss_get_handler = CommandHandler(BotCommands.RssGetCommand, rss_get, filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
     rss_sub_handler = CommandHandler(BotCommands.RssSubCommand, rss_sub, filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)

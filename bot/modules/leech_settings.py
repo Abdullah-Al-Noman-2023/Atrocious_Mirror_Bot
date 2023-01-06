@@ -1,9 +1,9 @@
-from os import remove as osremove, path as ospath, mkdir
-from threading import Thread
 from PIL import Image
+from threading import Thread
+from os import remove as osremove, path as ospath, mkdir
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
-from bot import AS_DOC_USERS, AS_MEDIA_USERS, dispatcher, AS_DOCUMENT, AUTO_DELETE_MESSAGE_DURATION, DB_URI
+from bot import AS_DOC_USERS, AS_MEDIA_USERS, dispatcher, AS_DOCUMENT, AUTO_DELETE_MESSAGE_DURATION, DATABASE_URL
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage, auto_delete_message
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -64,7 +64,7 @@ def setLeechType(update, context):
         if user_id in AS_MEDIA_USERS:
             AS_MEDIA_USERS.remove(user_id)
         AS_DOC_USERS.add(user_id)
-        if DB_URI is not None:
+        if DATABASE_URL is not None:
             DbManger().user_doc(user_id)
         query.answer(text="Your File Will Deliver As Document!", show_alert=True)
         editLeechType(message, query)
@@ -72,7 +72,7 @@ def setLeechType(update, context):
         if user_id in AS_DOC_USERS:
             AS_DOC_USERS.remove(user_id)
         AS_MEDIA_USERS.add(user_id)
-        if DB_URI is not None:
+        if DATABASE_URL is not None:
             DbManger().user_media(user_id)
         query.answer(text="Your File Will Deliver As Media!", show_alert=True)
         editLeechType(message, query)
@@ -80,7 +80,7 @@ def setLeechType(update, context):
         path = f"Thumbnails/{user_id}.jpg"
         if ospath.lexists(path):
             osremove(path)
-            if DB_URI is not None:
+            if DATABASE_URL is not None:
                 DbManger().user_rm_thumb(user_id, path)
             query.answer(text="Thumbnail Removed!", show_alert=True)
             editLeechType(message, query)
@@ -105,7 +105,7 @@ def setThumb(update, context):
         des_dir = ospath.join(path, f'{user_id}.jpg')
         Image.open(photo_dir).convert("RGB").save(des_dir, "JPEG")
         osremove(photo_dir)
-        if DB_URI is not None:
+        if DATABASE_URL is not None:
             DbManger().user_save_thumb(user_id, des_dir)
         msg = f"Custom thumbnail saved for {update.message.from_user.mention_html(update.message.from_user.first_name)}."
         sendMessage(msg, context.bot, update.message)
