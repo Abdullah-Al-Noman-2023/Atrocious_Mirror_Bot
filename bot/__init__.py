@@ -511,14 +511,6 @@ try:
 except:
     SEARCH_PLUGINS = None
 try:
-    APPDRIVE_EMAIL = environ.get('APPDRIVE_EMAIL')
-    APPDRIVE_PASS = environ.get('APPDRIVE_PASS')
-    if len(APPDRIVE_EMAIL) == 0 or len(APPDRIVE_PASS) == 0:
-        raise KeyError
-except KeyError:
-    APPDRIVE_EMAIL = None
-    APPDRIVE_PASS = None
-try:
     GDTOT_CRYPT = environ.get('GDTOT_CRYPT')
     if len(GDTOT_CRYPT) == 0:
         raise KeyError
@@ -581,6 +573,14 @@ try:
 except:
     START_BTN2_NAME = ''
     START_BTN2_URL = ''
+
+APPDRIVE_EMAIL = environ.get('APPDRIVE_EMAIL', '')
+if len(APPDRIVE_EMAIL) == 0:
+    APPDRIVE_EMAIL = ''
+
+APPDRIVE_PASS = environ.get('APPDRIVE_PASS', '')
+if len(APPDRIVE_PASS) == 0:
+    APPDRIVE_PASS = ''
 
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={'read_timeout': 20, 'connect_timeout': 15})
 bot = updater.bot
