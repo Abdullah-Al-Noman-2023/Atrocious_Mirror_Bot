@@ -1,12 +1,12 @@
-from signal import signal, SIGINT
-from os import path as ospath, remove as osremove, execl as osexecl
-from subprocess import run as srun, check_output
-from psutil import disk_usage, cpu_percent, swap_memory, cpu_count, virtual_memory, net_io_counters, boot_time
 from time import time
 from sys import executable
+from signal import signal, SIGINT
 from telegram.ext import CommandHandler
+from subprocess import run as srun, check_output
+from os import path as ospath, remove as osremove, execl as osexecl
+from psutil import disk_usage, cpu_percent, swap_memory, cpu_count, virtual_memory, net_io_counters, boot_time
 
-from bot import bot, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, DB_URI, alive, app, main_loop, AUTHORIZED_CHATS, app_session, USER_SESSION_STRING, \
+from bot import bot, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, DATABASE_URL, app, main_loop, AUTHORIZED_CHATS, app_session, USER_SESSION_STRING, \
     OWNER_ID, SUDO_USERS, START_BTN1_NAME, START_BTN1_URL, START_BTN2_NAME, START_BTN2_URL
 from .helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
@@ -16,7 +16,7 @@ from .helper.telegram_helper.message_utils import sendMessage, sendMarkup, editM
 from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.button_build import ButtonMaker
 
-from .modules import authorize, list, cancel_mirror, mirror_status, mirror_leech, clone, ytdlp, shell, eval, delete, count, leech_settings, search, rss, bt_select, sleep
+from .modules import authorize, cancel_mirror, mirror_status, mirror_leech, clone, ytdlp, shell, eval, leech_settings, search, rss, bt_select, list, delete, count
 from .helper.ext_utils.telegraph_helper import telegraph
 
 def stats(update, context):
@@ -71,10 +71,8 @@ def restart(update, context):
     if Interval:
         Interval[0].cancel()
         Interval.clear()
-    alive.kill()
     clean_all()
     srun(["pkill", "-9", "-f", "gunicorn|chrome|firefox|megasdkrest"])
-    srun(["python3", "update.py"])
     with open(".restartmsg", "w") as f:
         f.truncate(0)
         f.write(f"{restart_message.chat.id}\n{restart_message.message_id}\n")
@@ -167,7 +165,7 @@ def bot_help(update, context):
 def main():
     start_cleanup()
     notifier_dict = False
-    if INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
+    if INCOMPLETE_TASK_NOTIFIER and DATABASE_URL is not None:
         if notifier_dict := DbManger().get_incomplete_tasks():
             for cid, data in notifier_dict.items():
                 if ospath.isfile(".restartmsg"):

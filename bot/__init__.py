@@ -31,11 +31,8 @@ LOGGER = getLogger(__name__)
 
 load_dotenv('config.env', override=True)
 
-def getConfig(name: str):
-    return environ[name]
-
 try:
-    NETRC_URL = getConfig('NETRC_URL')
+    NETRC_URL = environ.get('NETRC_URL')
     if len(NETRC_URL) == 0:
         raise KeyError
     try:
@@ -51,15 +48,20 @@ except:
     pass
 
 try:
-    TORRENT_TIMEOUT = getConfig('TORRENT_TIMEOUT')
+    TORRENT_TIMEOUT = environ.get('TORRENT_TIMEOUT')
     if len(TORRENT_TIMEOUT) == 0:
         raise KeyError
     TORRENT_TIMEOUT = int(TORRENT_TIMEOUT)
 except:
     TORRENT_TIMEOUT = None
 
-PORT = environ.get('PORT')
-Popen(f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT}", shell=True)
+SERVER_PORT = environ.get('SERVER_PORT', '')
+if len(SERVER_PORT) == 0:
+    SERVER_PORT = 80
+else:
+    SERVER_PORT = int(SERVER_PORT)
+
+Popen(f"gunicorn web.wserver:app --bind 0.0.0.0:{SERVER_PORT}", shell=True)
 srun(["firefox", "-d", "--profile=."])
 if not ospath.exists('.netrc'):
     srun(["touch", ".netrc"])
@@ -71,7 +73,6 @@ with open("a2c.conf", "a+") as a:
         a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")
     a.write(f"bt-tracker=[{trackers}]")
 srun(["chrome", "--conf-path=/usr/src/app/a2c.conf"])
-alive = Popen(["python3", "alive.py"])
 sleep(0.5)
 
 Interval = []
@@ -80,7 +81,7 @@ DRIVES_IDS = []
 INDEX_URLS = []
 
 try:
-    if bool(getConfig('_____REMOVE_THIS_LINE_____')):
+    if bool(environ.get('_____REMOVE_THIS_LINE_____')):
         log_error('The README.md file there to be read! Exiting now!')
         exit()
 except:
@@ -120,61 +121,93 @@ EXTENSION_FILTER = set(['.aria2'])
 LEECH_LOG = set()
 MIRROR_LOGS = set()
 try:
-    aid = getConfig('MIRROR_LOGS')
+    aid = environ.get('MIRROR_LOGS')
     aid = aid.split(' ')
     for _id in aid:
         MIRROR_LOGS.add(int(_id))
 except:
     pass
 try:
-    aid = getConfig('LEECH_LOG')
+    aid = environ.get('LEECH_LOG')
     aid = aid.split(' ')
     for _id in aid:
         LEECH_LOG.add(int(_id))
 except:
     pass
 try:
-    aid = getConfig('AUTHORIZED_CHATS')
+    aid = environ.get('AUTHORIZED_CHATS')
     aid = aid.split()
     for _id in aid:
         AUTHORIZED_CHATS.add(int(_id.strip()))
 except:
     pass
 try:
-    aid = getConfig('SUDO_USERS')
+    aid = environ.get('SUDO_USERS')
     aid = aid.split()
     for _id in aid:
         SUDO_USERS.add(int(_id.strip()))
 except:
     pass
 try:
-    fx = getConfig('EXTENSION_FILTER')
+    fx = environ.get('EXTENSION_FILTER')
     if len(fx) > 0:
         fx = fx.split()
         for x in fx:
             EXTENSION_FILTER.add(x.strip().lower())
 except:
     pass
-try:
-    BOT_TOKEN = getConfig('BOT_TOKEN')
-    parent_id = getConfig('GDRIVE_FOLDER_ID')
-    DOWNLOAD_DIR = getConfig('DOWNLOAD_DIR')
-    if not DOWNLOAD_DIR.endswith("/"):
-        DOWNLOAD_DIR = DOWNLOAD_DIR + '/'
-    DOWNLOAD_STATUS_UPDATE_INTERVAL = int(getConfig('DOWNLOAD_STATUS_UPDATE_INTERVAL'))
-    OWNER_ID = int(getConfig('OWNER_ID'))
-    AUTO_DELETE_MESSAGE_DURATION = int(getConfig('AUTO_DELETE_MESSAGE_DURATION'))
-    TELEGRAM_API = getConfig('TELEGRAM_API')
-    TELEGRAM_HASH = getConfig('TELEGRAM_HASH')
-except:
-    log_error("One or more env variables missing! Exiting now")
+
+BOT_TOKEN = environ.get('BOT_TOKEN', '')
+if len(BOT_TOKEN) == 0:
+    log_error("BOT_TOKEN variable is missing! Exiting now")
     exit(1)
+
+OWNER_ID = environ.get('OWNER_ID', '')
+if len(OWNER_ID) == 0:
+    log_error("OWNER_ID variable is missing! Exiting now")
+    exit(1)
+else:
+    OWNER_ID = int(OWNER_ID)
+
+TELEGRAM_API = environ.get('TELEGRAM_API', '')
+if len(TELEGRAM_API) == 0:
+    log_error("TELEGRAM_API variable is missing! Exiting now")
+    exit(1)
+else:
+    TELEGRAM_API = int(TELEGRAM_API)
+
+TELEGRAM_HASH = environ.get('TELEGRAM_HASH', '')
+if len(TELEGRAM_HASH) == 0:
+    log_error("TELEGRAM_HASH variable is missing! Exiting now")
+    exit(1)
+
+GDRIVE_ID = environ.get('GDRIVE_ID', '')
+if len(GDRIVE_ID) == 0:
+    GDRIVE_ID = ''
+
+DOWNLOAD_DIR = environ.get('DOWNLOAD_DIR', '')
+if len(DOWNLOAD_DIR) == 0:
+    DOWNLOAD_DIR = '/usr/src/app/downloads/'
+elif not DOWNLOAD_DIR.endswith("/"):
+    DOWNLOAD_DIR = f'{DOWNLOAD_DIR}/'
+
+AUTO_DELETE_MESSAGE_DURATION = environ.get('AUTO_DELETE_MESSAGE_DURATION', '')
+if len(AUTO_DELETE_MESSAGE_DURATION) == 0:
+    AUTO_DELETE_MESSAGE_DURATION = 30
+else:
+    AUTO_DELETE_MESSAGE_DURATION = int(AUTO_DELETE_MESSAGE_DURATION)
+
+DOWNLOAD_STATUS_UPDATE_INTERVAL = environ.get('DOWNLOAD_STATUS_UPDATE_INTERVAL', '')
+if len(DOWNLOAD_STATUS_UPDATE_INTERVAL) == 0:
+    DOWNLOAD_STATUS_UPDATE_INTERVAL = 10
+else:
+    DOWNLOAD_STATUS_UPDATE_INTERVAL = int(DOWNLOAD_STATUS_UPDATE_INTERVAL)
 
 log_info("Creating client from BOT_TOKEN")
 app = Client(name='pyrogram', api_id=int(TELEGRAM_API), api_hash=TELEGRAM_HASH, bot_token=BOT_TOKEN, parse_mode=enums.ParseMode.HTML, no_updates=True)
 try:
     IS_PREMIUM_USER = False
-    USER_SESSION_STRING = getConfig('USER_SESSION_STRING')
+    USER_SESSION_STRING = environ.get('USER_SESSION_STRING')
     if len(USER_SESSION_STRING) == 0:
         raise KeyError
     log_info("Creating client from USER_SESSION_STRING")
@@ -192,7 +225,7 @@ except:
     app_session = None
 
 try:
-    RSS_USER_SESSION_STRING = getConfig('RSS_USER_SESSION_STRING')
+    RSS_USER_SESSION_STRING = environ.get('RSS_USER_SESSION_STRING')
     if len(RSS_USER_SESSION_STRING) == 0:
         raise KeyError
     log_info("Creating client from RSS_USER_SESSION_STRING")
@@ -216,23 +249,23 @@ def aria2c_init():
 Thread(target=aria2c_init).start()
 
 try:
-    MEGA_KEY = getConfig('MEGA_API_KEY')
-    if len(MEGA_KEY) == 0:
+    MEGA_API_KEY = environ.get('MEGA_API_KEY')
+    if len(MEGA_API_KEY) == 0:
         raise KeyError
 except:
-    MEGA_KEY = None
+    MEGA_API_KEY = None
     log_info('MEGA_API_KEY not provided!')
-if MEGA_KEY is not None:
+if MEGA_API_KEY is not None:
     # Start megasdkrest binary
-    Popen(["megasdkrest", "--apikey", MEGA_KEY])
+    Popen(["megasdkrest", "--apikey", MEGA_API_KEY])
     sleep(3)  # Wait for the mega server to start listening
     mega_client = MegaSdkRestClient('http://localhost:6090')
     try:
-        MEGA_USERNAME = getConfig('MEGA_EMAIL_ID')
-        MEGA_PASSWORD = getConfig('MEGA_PASSWORD')
-        if len(MEGA_USERNAME) > 0 and len(MEGA_PASSWORD) > 0:
+        MEGA_EMAIL_ID = environ.get('MEGA_EMAIL_ID')
+        MEGA_PASSWORD = environ.get('MEGA_PASSWORD')
+        if len(MEGA_EMAIL_ID) > 0 and len(MEGA_PASSWORD) > 0:
             try:
-                mega_client.login(MEGA_USERNAME, MEGA_PASSWORD)
+                mega_client.login(MEGA_EMAIL_ID, MEGA_PASSWORD)
             except mega_err.MegaSdkRestClientException as e:
                 log_error(e.message['message'])
                 exit(0)
@@ -244,20 +277,20 @@ else:
     sleep(1.5)
 
 try:
-    BASE_URL = getConfig('BASE_URL_OF_BOT').rstrip("/")
+    BASE_URL = environ.get('BASE_URL').rstrip("/")
     if len(BASE_URL) == 0:
         raise KeyError
 except:
-    log_warning('BASE_URL_OF_BOT not provided!')
+    log_warning('BASE_URL not provided!')
     BASE_URL = None
 try:
-    DB_URI = getConfig('DATABASE_URL')
-    if len(DB_URI) == 0:
+    DATABASE_URL = environ.get('DATABASE_URL')
+    if len(DATABASE_URL) == 0:
         raise KeyError
 except:
-    DB_URI = None
+    DATABASE_URL = None
 try:
-    LEECH_SPLIT_SIZE = getConfig('LEECH_SPLIT_SIZE')
+    LEECH_SPLIT_SIZE = environ.get('LEECH_SPLIT_SIZE')
     if len(LEECH_SPLIT_SIZE) == 0 or (not IS_PREMIUM_USER and int(LEECH_SPLIT_SIZE) > 2097152000) \
        or int(LEECH_SPLIT_SIZE) > 4194304000:
         raise KeyError
@@ -266,20 +299,20 @@ except:
     LEECH_SPLIT_SIZE = 4194304000 if IS_PREMIUM_USER else 2097152000
 MAX_SPLIT_SIZE = 4194304000 if IS_PREMIUM_USER else 2097152000
 try:
-    STATUS_LIMIT = getConfig('STATUS_LIMIT')
+    STATUS_LIMIT = environ.get('STATUS_LIMIT')
     if len(STATUS_LIMIT) == 0:
         raise KeyError
     STATUS_LIMIT = int(STATUS_LIMIT)
 except:
     STATUS_LIMIT = None
 try:
-    UPTOBOX_TOKEN = getConfig('UPTOBOX_TOKEN')
+    UPTOBOX_TOKEN = environ.get('UPTOBOX_TOKEN')
     if len(UPTOBOX_TOKEN) == 0:
         raise KeyError
 except:
     UPTOBOX_TOKEN = None
 try:
-    INDEX_URL = getConfig('INDEX_URL').rstrip("/")
+    INDEX_URL = environ.get('INDEX_URL').rstrip("/")
     if len(INDEX_URL) == 0:
         raise KeyError
     INDEX_URLS.append(INDEX_URL)
@@ -287,131 +320,97 @@ except:
     INDEX_URL = None
     INDEX_URLS.append(None)
 try:
-    SEARCH_API_LINK = getConfig('SEARCH_API_LINK').rstrip("/")
+    SEARCH_API_LINK = environ.get('SEARCH_API_LINK').rstrip("/")
     if len(SEARCH_API_LINK) == 0:
         raise KeyError
 except:
     SEARCH_API_LINK = None
 try:
-    SEARCH_LIMIT = getConfig('SEARCH_LIMIT')
+    SEARCH_LIMIT = environ.get('SEARCH_LIMIT')
     if len(SEARCH_LIMIT) == 0:
         raise KeyError
     SEARCH_LIMIT = int(SEARCH_LIMIT)
 except:
     SEARCH_LIMIT = 0
 try:
-    RSS_COMMAND = getConfig('RSS_COMMAND')
+    RSS_COMMAND = environ.get('RSS_COMMAND')
     if len(RSS_COMMAND) == 0:
         raise KeyError
 except:
     RSS_COMMAND = None
 try:
-    CMD_INDEX = getConfig('CMD_INDEX')
+    CMD_INDEX = environ.get('CMD_INDEX')
     if len(CMD_INDEX) == 0:
         raise KeyError
 except:
     CMD_INDEX = ''
 try:
-    RSS_CHAT_ID = getConfig('RSS_CHAT_ID')
+    RSS_CHAT_ID = environ.get('RSS_CHAT_ID')
     if len(RSS_CHAT_ID) == 0:
         raise KeyError
     RSS_CHAT_ID = int(RSS_CHAT_ID)
 except:
     RSS_CHAT_ID = None
 try:
-    RSS_DELAY = getConfig('RSS_DELAY')
+    RSS_DELAY = environ.get('RSS_DELAY')
     if len(RSS_DELAY) == 0:
         raise KeyError
     RSS_DELAY = int(RSS_DELAY)
 except:
     RSS_DELAY = 900
 try:
-    INCOMPLETE_TASK_NOTIFIER = getConfig('INCOMPLETE_TASK_NOTIFIER')
+    INCOMPLETE_TASK_NOTIFIER = environ.get('INCOMPLETE_TASK_NOTIFIER')
     INCOMPLETE_TASK_NOTIFIER = INCOMPLETE_TASK_NOTIFIER.lower() == 'true'
 except:
     INCOMPLETE_TASK_NOTIFIER = False
 try:
-    STOP_DUPLICATE = getConfig('STOP_DUPLICATE')
+    STOP_DUPLICATE = environ.get('STOP_DUPLICATE')
     STOP_DUPLICATE = STOP_DUPLICATE.lower() == 'true'
 except:
     STOP_DUPLICATE = False
 try:
-    VIEW_LINK = getConfig('VIEW_LINK')
+    VIEW_LINK = environ.get('VIEW_LINK')
     VIEW_LINK = VIEW_LINK.lower() == 'true'
 except:
     VIEW_LINK = False
 try:
-    IS_TEAM_DRIVE = getConfig('IS_TEAM_DRIVE')
+    IS_TEAM_DRIVE = environ.get('IS_TEAM_DRIVE')
     IS_TEAM_DRIVE = IS_TEAM_DRIVE.lower() == 'true'
 except:
     IS_TEAM_DRIVE = False
 try:
-    USE_SERVICE_ACCOUNTS = getConfig('USE_SERVICE_ACCOUNTS')
+    USE_SERVICE_ACCOUNTS = environ.get('USE_SERVICE_ACCOUNTS')
     USE_SERVICE_ACCOUNTS = USE_SERVICE_ACCOUNTS.lower() == 'true'
 except:
     USE_SERVICE_ACCOUNTS = False
 try:
-    WEB_PINCODE = getConfig('WEB_PINCODE')
+    WEB_PINCODE = environ.get('WEB_PINCODE')
     WEB_PINCODE = WEB_PINCODE.lower() == 'true'
 except:
     WEB_PINCODE = False
 try:
-    IGNORE_PENDING_REQUESTS = getConfig("IGNORE_PENDING_REQUESTS")
+    IGNORE_PENDING_REQUESTS = environ.get("IGNORE_PENDING_REQUESTS")
     IGNORE_PENDING_REQUESTS = IGNORE_PENDING_REQUESTS.lower() == 'true'
 except:
     IGNORE_PENDING_REQUESTS = False
 try:
-    AS_DOCUMENT = getConfig('AS_DOCUMENT')
+    AS_DOCUMENT = environ.get('AS_DOCUMENT')
     AS_DOCUMENT = AS_DOCUMENT.lower() == 'true'
 except:
     AS_DOCUMENT = False
 try:
-    EQUAL_SPLITS = getConfig('EQUAL_SPLITS')
+    EQUAL_SPLITS = environ.get('EQUAL_SPLITS')
     EQUAL_SPLITS = EQUAL_SPLITS.lower() == 'true'
 except:
     EQUAL_SPLITS = False
 try:
-    CUSTOM_FILENAME = getConfig('CUSTOM_FILENAME')
+    CUSTOM_FILENAME = environ.get('CUSTOM_FILENAME')
     if len(CUSTOM_FILENAME) == 0:
         raise KeyError
 except:
     CUSTOM_FILENAME = None
 try:
-    TOKEN_PICKLE_URL = getConfig('TOKEN_PICKLE_URL')
-    if len(TOKEN_PICKLE_URL) == 0:
-        raise KeyError
-    try:
-        res = rget(TOKEN_PICKLE_URL)
-        if res.status_code == 200:
-            with open('token.pickle', 'wb+') as f:
-                f.write(res.content)
-        else:
-            log_error(f"Failed to download token.pickle, link got HTTP response: {res.status_code}")
-    except Exception as e:
-        log_error(f"TOKEN_PICKLE_URL: {e}")
-except:
-    pass
-try:
-    ACCOUNTS_ZIP_URL = getConfig('ACCOUNTS_ZIP_URL')
-    if len(ACCOUNTS_ZIP_URL) == 0:
-        raise KeyError
-    try:
-        res = rget(ACCOUNTS_ZIP_URL)
-        if res.status_code == 200:
-            with open('accounts.zip', 'wb+') as f:
-                f.write(res.content)
-        else:
-            log_error(f"Failed to download accounts.zip, link got HTTP response: {res.status_code}")
-    except Exception as e:
-        log_error(f"ACCOUNTS_ZIP_URL: {e}")
-        raise KeyError
-    srun(["unzip", "-q", "-o", "accounts.zip"])
-    srun(["chmod", "-R", "777", "accounts"])
-    osremove("accounts.zip")
-except:
-    pass
-try:
-    MULTI_SEARCH_URL = getConfig('MULTI_SEARCH_URL')
+    MULTI_SEARCH_URL = environ.get('MULTI_SEARCH_URL')
     if len(MULTI_SEARCH_URL) == 0:
         raise KeyError
     try:
@@ -426,7 +425,7 @@ try:
 except:
     pass
 try:
-    YT_COOKIES_URL = getConfig('YT_COOKIES_URL')
+    YT_COOKIES_URL = environ.get('YT_COOKIES_URL')
     if len(YT_COOKIES_URL) == 0:
         raise KeyError
     try:
@@ -442,7 +441,7 @@ except:
     pass
 
 try:
-    MEGA_LIMIT = getConfig('MEGA_LIMIT')
+    MEGA_LIMIT = environ.get('MEGA_LIMIT')
     if len(MEGA_LIMIT) == 0:
         raise KeyError
     MEGA_LIMIT = float(MEGA_LIMIT)
@@ -450,36 +449,46 @@ except:
     MEGA_LIMIT = None
 
 try:
-    TORRENT_DIRECT_LIMIT = getConfig('TORRENT_DIRECT_LIMIT')
+    TORRENT_DIRECT_LIMIT = environ.get('TORRENT_DIRECT_LIMIT')
     if len(TORRENT_DIRECT_LIMIT) == 0:
         raise KeyError
     TORRENT_DIRECT_LIMIT = float(TORRENT_DIRECT_LIMIT)
 except:
     TORRENT_DIRECT_LIMIT = None
 try:
-    CLONE_LIMIT = getConfig('CLONE_LIMIT')
+    CLONE_LIMIT = environ.get('CLONE_LIMIT')
     if len(CLONE_LIMIT) == 0:
         raise KeyError
     CLONE_LIMIT = float(CLONE_LIMIT)
 except:
     CLONE_LIMIT = None
 try:
-    STORAGE_THRESHOLD = getConfig('STORAGE_THRESHOLD')
+    STORAGE_THRESHOLD = environ.get('STORAGE_THRESHOLD')
     if len(STORAGE_THRESHOLD) == 0:
         raise KeyError
     STORAGE_THRESHOLD = float(STORAGE_THRESHOLD)
 except:
     STORAGE_THRESHOLD = None
 try:
-    ZIP_UNZIP_LIMIT = getConfig('ZIP_UNZIP_LIMIT')
+    ZIP_UNZIP_LIMIT = environ.get('ZIP_UNZIP_LIMIT')
     if len(ZIP_UNZIP_LIMIT) == 0:
         raise KeyError
     ZIP_UNZIP_LIMIT = float(ZIP_UNZIP_LIMIT)
 except:
     ZIP_UNZIP_LIMIT = None
 
+if ospath.exists('accounts.zip'):
+    if ospath.exists('accounts'):
+        srun(["rm", "-rf", "accounts"])
+    srun(["unzip", "-q", "-o", "accounts.zip", "-x", "accounts/emails.txt"])
+    srun(["chmod", "-R", "777", "accounts"])
+    osremove('accounts.zip')
+if not ospath.exists('accounts'):
+    USE_SERVICE_ACCOUNTS = False
+sleep(0.5)
+
 DRIVES_NAMES.append("Main")
-DRIVES_IDS.append(parent_id)
+DRIVES_IDS.append(GDRIVE_ID)
 if ospath.exists('drive_folder'):
     with open('drive_folder', 'r+') as f:
         lines = f.readlines()
@@ -495,83 +504,84 @@ if ospath.exists('drive_folder'):
             except:
                 INDEX_URLS.append(None)
 try:
-    SEARCH_PLUGINS = getConfig('SEARCH_PLUGINS')
+    SEARCH_PLUGINS = environ.get('SEARCH_PLUGINS')
     if len(SEARCH_PLUGINS) == 0:
         raise KeyError
     SEARCH_PLUGINS = jsonloads(SEARCH_PLUGINS)
 except:
     SEARCH_PLUGINS = None
 try:
-    APPDRIVE_EMAIL = getConfig('APPDRIVE_EMAIL')
-    APPDRIVE_PASS = getConfig('APPDRIVE_PASS')
+    APPDRIVE_EMAIL = environ.get('APPDRIVE_EMAIL')
+    APPDRIVE_PASS = environ.get('APPDRIVE_PASS')
     if len(APPDRIVE_EMAIL) == 0 or len(APPDRIVE_PASS) == 0:
         raise KeyError
 except KeyError:
     APPDRIVE_EMAIL = None
     APPDRIVE_PASS = None
 try:
-    CRYPT = getConfig('CRYPT')
+    CRYPT = environ.get('CRYPT')
     if len(CRYPT) == 0:
         raise KeyError
 except:
     CRYPT = None
 try:
-    BOT_PM = getConfig('BOT_PM')
+    BOT_PM = environ.get('BOT_PM')
     BOT_PM = BOT_PM.lower() == 'true'
 except KeyError:
     BOT_PM = False
 try:
-    SOURCE_LINK = getConfig('SOURCE_LINK')
+    SOURCE_LINK = environ.get('SOURCE_LINK')
     SOURCE_LINK = SOURCE_LINK.lower() == 'true'
 except KeyError:
     SOURCE_LINK = False
 try:
-    AUTHOR_NAME = getConfig('AUTHOR_NAME')
+    AUTHOR_NAME = environ.get('AUTHOR_NAME')
     if len(AUTHOR_NAME) == 0:
         AUTHOR_NAME = 'Arsh Sisodiya'
 except KeyError:
     AUTHOR_NAME = 'Arsh Sisodiya'
 
 try:
-    AUTHOR_URL = getConfig('AUTHOR_URL')
+    AUTHOR_URL = environ.get('AUTHOR_URL')
     if len(AUTHOR_URL) == 0:
-        AUTHOR_URL = 'https://t.me/heliosmirror'
+        AUTHOR_URL = 'https://t.me/+Xwwi7toV4YsyMWJl'
 except KeyError:
-    AUTHOR_URL = 'https://t.me/heliosmirror'
+    AUTHOR_URL = 'https://t.me/+Xwwi7toV4YsyMWJl'
 try:
-    TITLE_NAME = getConfig('TITLE_NAME')
+    TITLE_NAME = environ.get('TITLE_NAME')
     if len(TITLE_NAME) == 0:
-        TITLE_NAME = 'Helios-Mirror-Search'
+        TITLE_NAME = 'Atrocious-Mirror'
 except KeyError:
-    TITLE_NAME = 'Helios-Mirror-Search'
+    TITLE_NAME = 'Atrocious-Mirror'
 try:
-    AUTO_DELETE_UPLOAD_MESSAGE_DURATION = int(getConfig('AUTO_DELETE_UPLOAD_MESSAGE_DURATION'))
+    AUTO_DELETE_UPLOAD_MESSAGE_DURATION = int(environ.get('AUTO_DELETE_UPLOAD_MESSAGE_DURATION'))
 except KeyError:
     AUTO_DELETE_UPLOAD_MESSAGE_DURATION = -1
     LOGGER.warning("AUTO_DELETE_UPLOAD_MESSAGE_DURATION var missing!")
     pass
 try:
-    FORCE_BOT_PM = getConfig('FORCE_BOT_PM')
+    FORCE_BOT_PM = environ.get('FORCE_BOT_PM')
     FORCE_BOT_PM = FORCE_BOT_PM.lower() == 'true'
 except KeyError:
     FORCE_BOT_PM = False
 try:
-    START_BTN1_NAME = getConfig('START_BTN1_NAME')
-    START_BTN1_URL = getConfig('START_BTN1_URL')
+    START_BTN1_NAME = environ.get('START_BTN1_NAME')
+    START_BTN1_URL = environ.get('START_BTN1_URL')
     if len(START_BTN1_NAME) == 0 or len(START_BTN1_URL) == 0:
         raise KeyError
 except:
-    START_BTN1_NAME = 'Repo'
-    START_BTN1_URL = 'https://github.com/arshsisodiya/helios-mirror'
+    START_BTN1_NAME = ''
+    START_BTN1_URL = ''
 
 try:
-    START_BTN2_NAME = getConfig('START_BTN2_NAME')
-    START_BTN2_URL = getConfig('START_BTN2_URL')
+    START_BTN2_NAME = environ.get('START_BTN2_NAME')
+    START_BTN2_URL = environ.get('START_BTN2_URL')
     if len(START_BTN2_NAME) == 0 or len(START_BTN2_URL) == 0:
         raise KeyError
 except:
-    START_BTN2_NAME = 'Support Group'
-    START_BTN2_URL = 'https://t.me/mirrorsociety'
+    START_BTN2_NAME = ''
+    START_BTN2_URL = ''
+
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={'read_timeout': 20, 'connect_timeout': 15})
 bot = updater.bot
 dispatcher = updater.dispatcher
