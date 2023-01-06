@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 from base64 import standard_b64encode, b64decode
 from time import sleep
 from lxml import etree
-from bot import LOGGER, UPTOBOX_TOKEN, APPDRIVE_EMAIL, APPDRIVE_PASS, CRYPT
+from bot import LOGGER, UPTOBOX_TOKEN, APPDRIVE_EMAIL, APPDRIVE_PASS, GDTOT_CRYPT
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.ext_utils.bot_utils import is_appdrive_link, is_gdtot_link
 fmed_list = ['fembed.net', 'fembed.com', 'femax20.com', 'fcdn.stream', 'feurl.com', 'layarkacaxxi.icu',
@@ -460,13 +460,13 @@ def gdtot(url: str) -> str:
     """ Gdtot google drive link generator
     By https://github.com/xcscxr """
 
-    if CRYPT is None:
-        raise DirectDownloadLinkException("ERROR: CRYPT cookie not provided")
+    if GDTOT_CRYPT is None:
+        raise DirectDownloadLinkException("ERROR: GDTOT_CRYPT cookie not provided")
 
     match = re_findall(r'https?://(.+)\.gdtot\.(.+)\/\S+\/\S+', url)[0]
 
     with rsession() as client:
-        client.cookies.update({'crypt': CRYPT})
+        client.cookies.update({'GDTOT_CRYPT': GDTOT_CRYPT})
         client.get(url)
         res = client.get(f"https://{match[0]}.gdtot.{match[1]}/dld?id={url.split('/')[-1]}")
     matches = re_findall('gd=(.*?)&', res.text)
