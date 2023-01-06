@@ -21,7 +21,7 @@ try:
     if len(UPSTREAM_REPO) == 0:
        raise TypeError
 except:
-    UPSTREAM_REPO = "https://github.com/AL-Noman-23/Helios_Mirror_Bot"
+    UPSTREAM_REPO = "https://github.com/Abdullah-Al-Noman-2023/Atrocious_Mirror_Bot"
 try:
     if len(UPSTREAM_BRANCH) == 0:
        raise TypeError
