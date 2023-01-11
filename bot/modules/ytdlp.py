@@ -282,18 +282,13 @@ def ytdlleech(update, context):
 def ytdlZipleech(update, context):
     _ytdl(context.bot, update.message, True, True)
 
-ytdl_handler = CommandHandler(BotCommands.YtdlCommand, ytdl,
-                                filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
-ytdl_zip_handler = CommandHandler(BotCommands.YtdlZipCommand, ytdlZip,
-                                    filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 ytdl_leech_handler = CommandHandler(BotCommands.YtdlLeechCommand, ytdlleech,
                                 filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 ytdl_zip_leech_handler = CommandHandler(BotCommands.YtdlZipLeechCommand, ytdlZipleech,
                                     filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 quality_handler = CallbackQueryHandler(select_format, pattern="qu", run_async=True)
 
-dispatcher.add_handler(ytdl_handler)
-dispatcher.add_handler(ytdl_zip_handler)
+
 dispatcher.add_handler(ytdl_leech_handler)
 dispatcher.add_handler(ytdl_zip_leech_handler)
 dispatcher.add_handler(quality_handler)
