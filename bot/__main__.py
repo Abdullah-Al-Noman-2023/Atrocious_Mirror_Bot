@@ -16,7 +16,7 @@ from .helper.telegram_helper.message_utils import sendMessage, sendMarkup, editM
 from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.button_build import ButtonMaker
 
-from .modules import authorize, cancel_mirror, mirror_status, mirror_leech,ytdlp, shell, eval, leech_settings, rss, bt_select
+from .modules import authorize, clone, count, cancel_mirror, delete, list, mirror_status, mirror_leech,ytdlp, shell, eval, leech_settings, rss, bt_select
 from .helper.ext_utils.telegraph_helper import telegraph
 
 def stats(update, context):
