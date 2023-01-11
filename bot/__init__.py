@@ -73,6 +73,7 @@ with open("a2c.conf", "a+") as a:
         a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")
     a.write(f"bt-tracker=[{trackers}]")
 srun(["chrome", "--conf-path=/usr/src/app/a2c.conf"])
+alive = Popen(["python3", "alive.py"])
 sleep(0.5)
 
 Interval = []
@@ -571,8 +572,8 @@ try:
     if len(START_BTN1_NAME) == 0 or len(START_BTN1_URL) == 0:
         raise KeyError
 except:
-    START_BTN1_NAME = ''
-    START_BTN1_URL = ''
+    START_BTN1_NAME = "Mirror Group"
+    START_BTN1_URL = "https://t.me/+Xwwi7toV4YsyMWJl"
 
 try:
     START_BTN2_NAME = environ.get('START_BTN2_NAME')
@@ -580,8 +581,8 @@ try:
     if len(START_BTN2_NAME) == 0 or len(START_BTN2_URL) == 0:
         raise KeyError
 except:
-    START_BTN2_NAME = ''
-    START_BTN2_URL = ''
+    START_BTN2_NAME = "Owner"
+    START_BTN2_URL = "https://t.me/ItsBitDefender"
 
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={'read_timeout': 20, 'connect_timeout': 15})
 bot = updater.bot
