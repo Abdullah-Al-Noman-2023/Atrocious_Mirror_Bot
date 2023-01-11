@@ -217,7 +217,6 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         sleep(4)
         Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech)).start()
 
-
 def mirror(update, context):
     _mirror_leech(context.bot, update.message)
 
